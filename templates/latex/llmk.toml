@@ -1,0 +1,4 @@
+source = [ "{{ .Id }}.tex" ]
+latex = "platex"
+bibtex = "pbibtex"
+dvipdf = "dvipdfmx"

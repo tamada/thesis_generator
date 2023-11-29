@@ -1,0 +1,96 @@
+%
+% Thesis Style 用サンプル TeX
+%
+% 注意：目次等を作成するために何度か platex にかけること
+%
+% 両面印刷する時は twoside にする
+%
+\documentclass[12pt,twoside]{jsbook}
+\usepackage{csg-thesis}
+
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{url}
+\usepackage{amsmath,amssymb}
+
+\begin{document}
+
+% 題目
+% 適当に\\で区切って見やすくする
+\title{ {{ .Title }} }
+
+% 学位(学部と大学院で変更)
+{{- if eq .Degree "bachelor" }}
+\degree{学士}
+{{- else }}
+\degree{修士}
+{{- end }}
+
+% 名前
+\author{ {{ .Author.Name }} }
+
+% 提出日
+\date{ {{ .Year }} 年1月}
+
+% 卒業年度
+\schoolyear{ {{ .Year }}年}
+
+% 所属(学部と大学院で変更)
+\department{ {{ .Author.Affiliation.University }} {{ .Author.Affiliation.Department }}}
+
+% 学籍番号
+\stnumber{ {{ .Author.StudentId }}}
+
+% 指導教員(教官ではなくなった...)
+\supervisor{ {{ .Supervisor }}}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 概要
+\begin{abstract}
+\end{abstract}
+
+% 謝辞
+\begin{acknowledgments}
+
+\end{acknowledgments}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{roman}  %% ページ番号をローマ数字にする
+\tableofcontents       %% 目次
+
+%
+% 目次等にはローマ数字を使い、本文開始ページを 1 ページ目にできる
+% この方が見た目がきれいであるが、全体のページ数は減って見える
+% ここでローマ数字に変えた場合は chapter 1 でアラビア数字に戻すこと
+%
+
+\listoffigures         %% 図目次(図がない場合は不要)
+\listoftables          %% 表目次(表がない場合は不要)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{arabic}  %% ページ番号をアラビア数字に変更
+
+%
+% 本文
+%
+% 各章を各ファイルに書く
+%
+\chapter{はじめに}
+
+
+
+\chapter{まとめ}
+
+\bibliographystyle{csg-thesis}
+\bibliography{ {{ .Id }}}  %% thesis.bib というファイルを用意
+
+% 付録が必要ならつける
+\appendix
+\chapter{プログラム例}
+
+
+\end{document}

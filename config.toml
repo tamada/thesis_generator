@@ -1,0 +1,6 @@
+baseURL = 'https://tamadalab.github.io/thesis_generator/'
+languageCode = 'en-us'
+title = 'Thesis Generator'
+description = 'Generate thesis template with a click of a button.'
+theme = "mainroad"
+

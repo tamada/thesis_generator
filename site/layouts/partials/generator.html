@@ -1,0 +1,45 @@
+<form id="generator">
+  <fieldset>
+      <legend>Degree</legend>
+      <input type="radio" name="degree" id="degree_bachelor"    value="latex" checked onclick="updateThesisId()"><label for="degree_bachelor">学士</label></input>
+      <input type="radio" name="degree" id="degree_master"     value="html" onclick="updateThesisId()"><label for="degree_master">修士</label></input>
+  </fieldset>
+  <fieldset>
+    <legend>Format</legend>
+    <input type="radio" name="format" id="format_latex"    value="latex" checked onclick="updateThesisId()"><label for="format_latex">LaTeX</label></input>
+    <input type="radio" name="format" id="format_html"     value="html" onclick="updateThesisId()"><label for="format_html">HTML</label></input>
+    <input type="radio" name="format" id="format_markdown" value="markdown" onclick="updateThesisId()"><label for="format_markdown">Markdown</label></input>
+    <input type="radio" name="format" id="format_word"     value="word" onclick="updateThesisId()"><label for="format_word">Microsoft Word</label></input>
+  </fieldset>
+  <fieldset>
+    <legend>Thesis Information</legend>
+    <input type="number" name="year" id="thesis_year" readonly="true" pattern="[0-9]*" value="2023" min="0" max="9999999" oninput="validate()"></input>年度卒業論文<br/>
+    <input type="text"  name="title"  id="thesis_title" placeholder="卒論のタイトルを入力してください．" oninput="validate()"></input>
+  </fieldset>
+  <fieldset>
+    <legend>Author Information</legend>
+    <p>
+        <input type="text"   name="author"     id="author" placeholder="フルネームを全角で入力してください．" oninput="validate()"></input> <span id="author_error" hidden="true">⚠️</span>
+        <input type="email"  name="email"      id="email" placeholder="メールアドレスを入力してください．" oninput="validate()"></input> <span id="email_error" hidden="true">⚠️</span>
+        <input type="text"   name="familyname" id="familyname" placeholder="姓をアルファベットで入力してください．" pattern="^[0-9A-Za-z]+$" oninput="updateThesisId()"></input> <span id="familyname_error" hidden="true">⚠️</span>
+    </p><p>
+        <input type="number" name="student_id" id="student_id" placeholder="学生証番号（7桁）"></input>
+        <select id="laboratory" onchange="validate()">
+            <option value="--">未選択</option>
+            {{- range $.Site.Data.laboratories }}
+              <option value="{{ .id }}">{{ .name }}</option>
+            {{- end }}
+        </select> 研究室
+    </p>
+  </fieldset>
+  <fieldset>
+    <legend>Resultant file name</legend>
+    <input type="text" name="thesis_id" id="thesis_id" placeholder="Thesis ID" readonly="true"></input>
+  </fieldset>
+  <p>
+    <input type="button" value="Generate" id="generate" disabled="disabled" onclick="generateThesis()"></input>
+    <input type="button" value="Clear" onclick="clearForms()"></input>
+  </p><p>
+    <div id="warning"></div>
+  </p>
+</form>
