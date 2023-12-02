@@ -1,5 +1,5 @@
 GO=go
-NAME := thesis_generator
+NAME := ttgenerator
 VERSION := 1.0.0
 DIST := $(NAME)-$(VERSION)
 

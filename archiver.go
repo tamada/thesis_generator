@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 
 	"github.com/go-git/go-billy/v5"
@@ -34,32 +33,41 @@ func Archive(thesisId string, fs billy.Filesystem, archiveType ArchiveType, dest
 func tarGzArchive(fs billy.Filesystem, dest io.Writer, thesisId string) error {
 	gzipWriter := gzip.NewWriter(dest)
 	tarWriter := tar.NewWriter(gzipWriter)
+	defer tarWriter.Close()
+	defer gzipWriter.Close()
+	return tarGzArchiveImpl(fs, tarWriter, ".", thesisId)
+}
+
+func tarGzArchiveImpl(fs billy.Filesystem, tarWriter *tar.Writer, fromDir, thesisId string) error {
 	var errs error
-	infos, err := fs.ReadDir(".")
+	infos, err := fs.ReadDir(fromDir)
 	if err != nil {
 		return err
 	}
 	for _, info := range infos {
-		err := writeToTarEntry(fs, info, tarWriter, thesisId)
-		if err != nil {
+		fromFile := fs.Join(fromDir, info.Name())
+		if info.IsDir() {
+			err := tarGzArchiveImpl(fs, tarWriter, fromFile, thesisId)
+			errs = errors.Join(errs, err)
+			continue
+		} else {
+			err := writeToTarEntry(fs, tarWriter, fromFile, thesisId, info.Size())
 			errs = errors.Join(errs, err)
 		}
 	}
-	err1 := tarWriter.Close()
-	err2 := gzipWriter.Close()
-	return errors.Join(errs, err1, err2)
+	return errors.Join(errs)
 }
 
-func writeToTarEntry(fs billy.Filesystem, info os.FileInfo, tarWriter *tar.Writer, thesisId string) error {
+func writeToTarEntry(fs billy.Filesystem, tarWriter *tar.Writer, fromFile, destPrefix string, size int64) error {
 	header := &tar.Header{
-		Name: fs.Join(thesisId, info.Name()),
-		Size: info.Size(),
+		Name: fs.Join(destPrefix, fromFile),
+		Size: size,
 		Mode: 0600,
 	}
 	if err := tarWriter.WriteHeader(header); err != nil {
 		return err
 	}
-	in, err := fs.Open(info.Name())
+	in, err := fs.Open(fromFile)
 	if err != nil {
 		return err
 	}
@@ -84,7 +92,6 @@ func zipArchiveImpl(fs billy.Filesystem, zipWriter *zip.Writer, fromDir, toDir s
 	}
 	var errs error
 	for _, info := range infos {
-		fmt.Printf("zipArchiveImpl:  %s/%s\n", fromDir, info.Name())
 		fromFile := fs.Join(fromDir, info.Name())
 		if info.IsDir() {
 			err := zipArchiveImpl(fs, zipWriter, fromFile, fs.Join(toDir, info.Name()))
@@ -98,7 +105,6 @@ func zipArchiveImpl(fs billy.Filesystem, zipWriter *zip.Writer, fromDir, toDir s
 }
 
 func writeToZipEntry(fs billy.Filesystem, zipWriter *zip.Writer, path string, toDir string) error {
-	fmt.Printf("writeToZipEntry: %s\n", path)
 	out, err := zipWriter.Create(fs.Join(toDir, filepath.Base(path)))
 	if err != nil {
 		return errors.Join(err, fmt.Errorf("%s: create error", fs.Join(toDir, filepath.Base(path))))
