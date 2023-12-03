@@ -47,7 +47,7 @@ func buildOptions(args []string) (*flag.FlagSet, *options) {
 }
 
 func performImpl(thesis *tg.Thesis, opts *options, fs billy.Filesystem) error {
-	if err := tg.Generate(thesis, tg.LaTeX, fs); err != nil {
+	if err := tg.Generate2(thesis, opts.template, fs); err != nil {
 		return err
 	}
 
@@ -140,6 +140,7 @@ func validate(thesis *tg.Thesis) (*tg.Thesis, error) {
 		errs = append(errs, fmt.Errorf("%s: unknown degree", thesis.Degree))
 	}
 	errs = append(errs, validateString(thesis.Title, "title"))
+
 	errs = append(errs, validateString(thesis.Author.Name, "author name"))
 	errs = append(errs, validateString(thesis.Author.Name, "author email"))
 	errs = append(errs, validateEmail(thesis.Author.Email))

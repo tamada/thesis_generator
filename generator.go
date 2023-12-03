@@ -1,9 +1,7 @@
 package thesis_generator
 
 import (
-	"embed"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"path/filepath"
@@ -11,40 +9,34 @@ import (
 	"github.com/go-git/go-billy/v5"
 )
 
-//go:embed templates
-var templates embed.FS
-
-func Generate(thesis *Thesis, format Format, fs billy.Filesystem) error {
-	switch format {
-	case LaTeX:
-		return generateLaTeX(thesis, fs)
-	case HTML, Markdown, MicrosoftWord:
-		return errors.New("not implemented yet")
-	default:
-		return fmt.Errorf("%d: unknown format", format)
+func Generate(thesis *Thesis, templatePath string, fs billy.Filesystem) error {
+	sourceFS, err := FindTemplate(templatePath)
+	if err != nil {
+		return err
 	}
+	return generateImpl2(sourceFS, ".", thesis, fs)
 }
 
-func templating(fs billy.Filesystem, source, dest string, thesis *Thesis) error {
-	out, err := fs.Create(dest)
+func templating(sourceFS FS, destFS billy.Filesystem, source, dest string, thesis *Thesis) error {
+	out, err := destFS.Create(dest)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
-	templ, err := template.ParseFS(templates, source)
+	templ, err := template.ParseFS(sourceFS, source)
 	if err != nil {
 		return err
 	}
 	return templ.Execute(out, thesis)
 }
 
-func copyFile(fs billy.Filesystem, source string, toFile string) error {
-	in, err := templates.Open(source)
+func copyFile(sourceFS FS, destFS billy.Filesystem, source, toFile string) error {
+	in, err := sourceFS.Open(source)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
-	out, err := fs.Create(toFile)
+	out, err := destFS.Create(toFile)
 	if err != nil {
 		return err
 	}
@@ -55,32 +47,26 @@ func copyFile(fs billy.Filesystem, source string, toFile string) error {
 	return nil
 }
 
-func generateLaTeX(thesis *Thesis, fs billy.Filesystem) error {
-	return generateImpl("templates/latex", "", thesis, fs)
-}
-
-func generateImpl(source, prefix string, thesis *Thesis, fs billy.Filesystem) error {
-	entries, err := templates.ReadDir(source)
+func generateImpl(sourceFS FS, prefix string, thesis *Thesis, destFS billy.Filesystem) error {
+	entries, err := sourceFS.OpenDir(prefix)
 	if err != nil {
 		return err
 	}
 	var errs []error
 	for _, entry := range entries {
 		if entry.IsDir() {
-			if err := generateImpl(filepath.Join(source, entry.Name()), filepath.Join(prefix, entry.Name()), thesis, fs); err != nil {
+			if err := generateImpl(sourceFS, filepath.Join(prefix, entry.Name()), thesis, destFS); err != nil {
 				errs = append(errs, err)
 			}
 		} else {
 			toFile := filepath.Join(prefix, mapFileName(entry.Name(), thesis))
-			fromFile := filepath.Join(source, entry.Name())
+			fromFile := filepath.Join(prefix, entry.Name())
 			if isTemplateTarget(entry.Name()) {
-				if err := templating(fs, fromFile, toFile, thesis); err != nil {
-					errs = append(errs, err)
-				}
+				templating(sourceFS, destFS, fromFile, toFile, thesis)
+				errs = append(errs, err)
 			} else {
-				if err := copyFile(fs, fromFile, toFile); err != nil {
-					errs = append(errs, err)
-				}
+				copyFile(sourceFS, destFS, fromFile, toFile)
+				errs = append(errs, err)
 			}
 
 		}
@@ -103,7 +89,9 @@ func mapFileName(name string, thesis *Thesis) string {
 	case "thesis.tex":
 		return filepath.Join(dir, thesis.Id+".tex")
 	case "thesis.bib":
-		return filepath.Join(thesis.Id + ".bib")
+		return filepath.Join(dir, thesis.Id+".bib")
+	case "gitignore":
+		return filepath.Join(dir, ".gitignore")
 	default:
 		return name
 	}
