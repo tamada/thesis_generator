@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-git/go-billy/v5"
 )
@@ -14,7 +15,7 @@ func Generate(thesis *Thesis, templatePath string, fs billy.Filesystem) error {
 	if err != nil {
 		return err
 	}
-	return generateImpl2(sourceFS, ".", thesis, fs)
+	return generateImpl(sourceFS, ".", thesis, fs)
 }
 
 func templating(sourceFS FS, destFS billy.Filesystem, source, dest string, thesis *Thesis) error {
@@ -23,11 +24,18 @@ func templating(sourceFS FS, destFS billy.Filesystem, source, dest string, thesi
 		return err
 	}
 	defer out.Close()
-	templ, err := template.ParseFS(sourceFS, source)
+	templ, err := template.New(source).Funcs(funcs()).ParseFS(sourceFS, source)
 	if err != nil {
 		return err
 	}
 	return templ.Execute(out, thesis)
+}
+
+func funcs() template.FuncMap {
+	return map[string]any{
+		"split": strings.Split,
+		"trim":  strings.TrimSpace,
+	}
 }
 
 func copyFile(sourceFS FS, destFS billy.Filesystem, source, toFile string) error {

@@ -47,7 +47,7 @@ func buildOptions(args []string) (*flag.FlagSet, *options) {
 }
 
 func performImpl(thesis *tg.Thesis, opts *options, fs billy.Filesystem) error {
-	if err := tg.Generate2(thesis, opts.template, fs); err != nil {
+	if err := tg.Generate(thesis, opts.template, fs); err != nil {
 		return err
 	}
 

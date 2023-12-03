@@ -19,9 +19,9 @@ SETTING_JSON
 
 ```json
 {
-    "degree":     "bachelor",        // or "master"
-    "title":      "Thesis Title",
-    "supervisor": "Supervisor Name",
+    "degree":      "bachelor",            // or "master"
+    "title":       "Thesis Title",
+    "supervisors": [ "Supervisor Names separated with semi-colon (;)" ],
     "author": {
         "name": "Author Name in Japanese",
         "email": "Author Email",

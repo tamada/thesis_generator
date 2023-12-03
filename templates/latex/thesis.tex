@@ -41,7 +41,9 @@
 \stnumber{ {{ .Author.StudentId }}}
 
 % 指導教員(教官ではなくなった...)
-\supervisor{ {{ .Supervisors }}}
+{{- range .Supervisors }}
+\supervisor{ {{ trim . }}}
+{{- end }}
 
 \maketitle
 
