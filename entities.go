@@ -1,13 +1,13 @@
 package thesis_generator
 
 type Thesis struct {
-	Id         string      `json:"-"` // generate from author name and title
-	Title      string      `json:"title"`
-	Degree     string      `json:"degree"`
-	Year       int         `json:"year"`
-	Supervisor string      `json:"supervisor"`
-	Author     *Author     `json:"author"`
-	Repository *Repository `json:"repository"`
+	Id          string      `json:"-"` // generate from author name and title
+	Title       string      `json:"title"`
+	Degree      string      `json:"degree"`
+	Year        int         `json:"year"`
+	Supervisors []string    `json:"supervisors"`
+	Author      *Author     `json:"author"`
+	Repository  *Repository `json:"repository"`
 }
 
 type Author struct {

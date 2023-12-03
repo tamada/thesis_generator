@@ -38,13 +38,13 @@ func templating(fs billy.Filesystem, source, dest string, thesis *Thesis) error 
 	return templ.Execute(out, thesis)
 }
 
-func copyFile(fs billy.Filesystem, source string) error {
+func copyFile(fs billy.Filesystem, source string, toFile string) error {
 	in, err := templates.Open(source)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
-	out, err := fs.Create(filepath.Base(source))
+	out, err := fs.Create(toFile)
 	if err != nil {
 		return err
 	}
@@ -56,12 +56,55 @@ func copyFile(fs billy.Filesystem, source string) error {
 }
 
 func generateLaTeX(thesis *Thesis, fs billy.Filesystem) error {
-	err1 := templating(fs, "templates/latex/thesis.tex", thesis.Id+".tex", thesis)
-	err2 := templating(fs, "templates/latex/thesis.bib", thesis.Id+".bib", thesis)
-	err3 := templating(fs, "templates/latex/llmk.toml", "llmk.toml", thesis)
-	err4 := templating(fs, "templates/latex/README.md", "README.md", thesis)
-	err5 := templating(fs, "templates/latex/gitignore", ".gitignore", thesis)
-	err6 := copyFile(fs, "templates/latex/csg-thesis.bst")
-	err7 := copyFile(fs, "templates/latex/csg-thesis.sty")
-	return errors.Join(err1, err2, err3, err4, err5, err6, err7)
+	return generateImpl("templates/latex", "", thesis, fs)
+}
+
+func generateImpl(source, prefix string, thesis *Thesis, fs billy.Filesystem) error {
+	entries, err := templates.ReadDir(source)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, entry := range entries {
+		if entry.IsDir() {
+			if err := generateImpl(filepath.Join(source, entry.Name()), filepath.Join(prefix, entry.Name()), thesis, fs); err != nil {
+				errs = append(errs, err)
+			}
+		} else {
+			toFile := filepath.Join(prefix, mapFileName(entry.Name(), thesis))
+			fromFile := filepath.Join(source, entry.Name())
+			if isTemplateTarget(entry.Name()) {
+				if err := templating(fs, fromFile, toFile, thesis); err != nil {
+					errs = append(errs, err)
+				}
+			} else {
+				if err := copyFile(fs, fromFile, toFile); err != nil {
+					errs = append(errs, err)
+				}
+			}
+
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func isTemplateTarget(name string) bool {
+	switch filepath.Ext(name) {
+	case ".png", ".jpg", ".jpeg", ".pdf", ".gif", ".svg", ".sty", ".bst":
+		return false
+	default:
+		return true
+	}
+}
+
+func mapFileName(name string, thesis *Thesis) string {
+	dir := filepath.Dir(name)
+	switch filepath.Base(name) {
+	case "thesis.tex":
+		return filepath.Join(dir, thesis.Id+".tex")
+	case "thesis.bib":
+		return filepath.Join(thesis.Id + ".bib")
+	default:
+		return name
+	}
 }

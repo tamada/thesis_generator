@@ -15,8 +15,8 @@ func TestZip(t *testing.T) {
 
 	r, _ := zip.OpenReader("../../dest.zip")
 	defer r.Close()
-	if len(r.File) != 20 {
-		t.Errorf("len(r.File) = %d, want 20", len(r.File))
+	if len(r.File) != 33 {
+		t.Errorf("len(r.File) = %d, want 33", len(r.File))
 	}
 	if r.File[0].Name != "2023bthesis_ykino/.git/HEAD" {
 		t.Errorf("r.File[0].Name = \"%s\", wants 2023bthesis_ykino/.git/HEAD", r.File[0].Name)
@@ -43,7 +43,7 @@ func TestTarGz(t *testing.T) {
 
 		}
 	}
-	if count != 20 {
-		t.Errorf("count = %d, wants 20", count)
+	if count != 33 {
+		t.Errorf("count = %d, wants 33", count)
 	}
 }

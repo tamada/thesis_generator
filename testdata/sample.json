@@ -1,7 +1,7 @@
 {
     "degree": "bachelor",
     "title": "初学者を対象としたChatGPTによるコンパイルエラーの修正支援",
-    "supervisor": "玉田 春昭",
+    "supervisors": ["玉田 春昭"],
     "author": {
         "name": "木下 優太",
         "email": "g1234567@cc.kyoto-su.ac.jp",

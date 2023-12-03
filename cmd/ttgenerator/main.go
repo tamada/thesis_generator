@@ -140,7 +140,6 @@ func validate(thesis *tg.Thesis) (*tg.Thesis, error) {
 		errs = append(errs, fmt.Errorf("%s: unknown degree", thesis.Degree))
 	}
 	errs = append(errs, validateString(thesis.Title, "title"))
-	errs = append(errs, validateString(thesis.Supervisor, "supervisor"))
 	errs = append(errs, validateString(thesis.Author.Name, "author name"))
 	errs = append(errs, validateString(thesis.Author.Name, "author email"))
 	errs = append(errs, validateEmail(thesis.Author.Email))
